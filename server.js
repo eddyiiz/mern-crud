@@ -1,3 +1,5 @@
+require("dotenv").config();
+const path = require("path");
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
@@ -8,9 +10,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 
 //DB configs
-mongoose
-  .connect("mongodb://localhost:27017/mypostsDB")
-  .catch((err) => console.log(err));
+mongoose.connect(process.env.DATABASE).catch((err) => console.log(err));
 
 const postSchema = mongoose.Schema({
   title: String,
@@ -18,10 +18,6 @@ const postSchema = mongoose.Schema({
 });
 
 const Post = mongoose.model("Post", postSchema);
-
-app.get("/", (req, res) => {
-  res.send("express is here");
-});
 
 app.post("/create", (req, res) => {
   const newPost = new Post({
@@ -60,6 +56,13 @@ app.put("/update/:id", (req, res) => {
     .catch((err) => console.log(err));
 });
 
-app.listen(3001, function () {
-  console.log("Express server is running");
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static("client/build"));
+  appp.get("*", (req, res) => {
+    res.sendFile(path.resolve(__dirname, "client", "build", "index.html"));
+  });
+}
+
+app.listen(process.env.PORT || 3001, function () {
+  console.log("server is running");
 });
